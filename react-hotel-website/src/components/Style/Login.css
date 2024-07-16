@@ -1,0 +1,48 @@
+/* Center the card and give it some shadow */
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+/* Add some padding to the form */
+form {
+    padding: 20px;
+}
+
+/* Style the button */
+button.w-100 {
+    background-color: #007bff;
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+button.w-100:hover {
+    background-color: #0056b3;
+}
+
+/* Style the form labels */
+form label {
+    font-weight: bold;
+}
+
+/* Style the form input fields */
+form input {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 10px;
+}
+
+/* Style the links */
+form a {
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+form a:hover {
+    color: #0056b3;
+}
