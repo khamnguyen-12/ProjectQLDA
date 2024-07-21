@@ -1,49 +1,44 @@
-import React from 'react';
+import React, { useState, useReducer } from 'react';
 import './App.css';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-// import Navbar from "./components/Navbar/Navbar";
-// import Hero from "./components/Hero/Hero";
-// import JoinUs from "./components/JoinUs/JoinUs";
-// import Features from "./components/Features/Features";
-// import Sale from "./components/Sale/Sale";
-// import Pricing from "./components/Pricing/Pricing";
-// import Gallery from "./components/Gallery/Gallery";
-// import Trainers from "./components/Trainers/Trainers";
-// import Summer from "./components/Summer/Summer";
-// import Footer from "./components/Footer/Footer";
-
+import Navbar from "./components/Navbar/Navbar";
+import Footer from "./components/Footer/Footer";
 import Login from "./components/Account/Login";
-import SignUp from './components/Account/Signin';
-import SignIn from './components/Account/Signin';
-// import Signup from "./components/Account/Signup"
-
-
+import Signup from './components/Account/Signup';
+import MainContent from './components/MainContent/MainContent';
+import Info from './components/Navbar/Info';
+import MyUserReducer from './components/MyReducer/MyUserReducer';
+import cookie from "react-cookies";
+import { MyDispatchContext, MyUserContext } from './configs/MyContext';
+import ManageBookings from './components/Staff/ManageBookings';
 const App = () => {
+  const [user, dispatch] = useReducer(MyUserReducer, cookie.load("user") || null);
+  const [showMainContent, setShowMainContent] = useState(true);
   return (
-    // <div className="App">
-    //   <Navbar />
-    //   <Hero />
-    //   <JoinUs />
-    //   <Features />
-    //   <Sale />
-    //   <Pricing />
-    //   <Gallery />
-    //   <Trainers />
-    //   <Summer />
-    //   <Footer />
-
     <BrowserRouter>
-      <Routes>
-        {/* <Route path='/' element = {<Home />}></Route> */}
-        <Route path='/login' element = {<Login />}></Route>
-        <Route path='/signin' element = {<SignIn />}></Route>
-
-      </Routes>
+      <MyUserContext.Provider value={user}>
+        <MyDispatchContext.Provider value={dispatch}>
+          <Navbar />
+          <Routes>
+            <Route exact path='/' Component={MainContent} /> 
+            <Route
+              path='/login'
+              element={
+                <Login
+                  setShowMainContent={setShowMainContent}
+                />
+              }
+            />
+            <Route path='/info' element={<Info />} />
+            <Route path='/signup' element={<Signup />} />
+            <Route path='/manage-bookings' element={<ManageBookings />} />
+          </Routes>
+          <Footer />
+        </MyDispatchContext.Provider>
+      </MyUserContext.Provider>
     </BrowserRouter>
-
-    // </div>
   );
 }
 

@@ -1,16 +1,17 @@
 /** @jsx jsx */
 import { css, jsx } from '@emotion/core'
-import GymLogo from "../../images/GymLogo.png";
+import Hotel from "../../images/hotel.png";
 
 
 const NavbarLogo = () => {
     return (
-        <img src={GymLogo} alt="" />
+        <img src={Hotel} alt="" css={logoStyles}/>
     )
 }
 
-const styles = css`
-
-`
-
+const logoStyles = css`
+  max-height: 90px; /* Điều chỉnh chiều cao tối đa của logo */
+  width: auto; /* Đảm bảo logo giữ tỷ lệ chiều rộng */
+  display: block; /* Đảm bảo logo không bị căn lề */
+`;
 export default NavbarLogo;

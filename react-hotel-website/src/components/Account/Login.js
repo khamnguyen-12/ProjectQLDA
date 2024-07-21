@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Form, Button, Container, Row, Col } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { Form, Button, Container, Row } from 'react-bootstrap';
 import APIs, { endpoints, authAPI } from "../../configs/APIs";
 import cookie from "react-cookies";
-import { MyDispatchContext, MyUserContext } from '../../configs/MyContext';
+import { MyDispatchContext} from '../../configs/MyContext';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const Login = () => {
     const [username, setUsername] = useState(''); // Khởi tạo biến state cho username
@@ -24,8 +25,6 @@ const Login = () => {
                 break;
         }
     };
-
-
 
     const login = async () => {
         console.log(username); // Log username ra console để kiểm tra
@@ -50,10 +49,12 @@ const Login = () => {
             if (res.status === 200) {
                 cookie.save("token", res.data.access_token);
                 console.log(cookie.load("token"))
+                nav("/")
                 console.log("Đăng nhập thành công!");
                 console.info(res.data);
-                let userdata = await authAPI(cookie.load("token")).get(endpoints['current-user']);
+                let userdata = await authAPI().get(endpoints['current_user']);
                 cookie.save('user', userdata.data);
+                console.info(userdata.data)
                 dispatch({
                     "type": "login",
                     "payload": userdata.data
@@ -70,58 +71,67 @@ const Login = () => {
         }
     };
     const register = () => {
-        nav("/signin");
+        nav("/signup");
     };
+
+
     return (
-        <Container className="d-flex justify-content-center align-items-center" style={{ height: '100vh' }}>
-            <Row className="justify-content-md-center" >
-                <Col md="6">
-                    <div className="card p-4 shadow bg-white rounded">
-                        <Form>
-                            <h1 className="text-center mb-4">Đăng nhập</h1>
-                            <Form.Group controlId="formBasicEmail">
-                                <Form.Label>Tên đăng nhập</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Nhập tên đăng nhập"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                            </Form.Group>
+        <Container
+            fluid
+            className="d-flex justify-content-center align-items-center"
+            style={{
+                height: '100vh',
+                backgroundImage: 'url("https://cache.marriott.com/marriottassets/marriott/BOMSA/bomsa-exterior-0023-hor-feat.jpg")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
+            <Row className="justify-content-md-center" style={{ width: '100%' }}>
+                <div className="card p-4 shadow bg-white rounded" style={{ maxWidth: '500px', width: '100%' }}>
+                    <Form>
+                        <h1 className="text-center mb-4">Đăng nhập</h1>
+                        <Form.Group controlId="formBasicEmail" style={{ marginBottom: '20px' }}>
+                            <Form.Control
+                                type="text"
+                                placeholder="Nhập tên đăng nhập"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-                            <Form.Group controlId="formBasicPassword">
-                                <Form.Label>Mật khẩu</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    placeholder="Nhập mật khẩu"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    required
-                                />
-                            </Form.Group>
+                        <Form.Group controlId="formBasicPassword" style={{ marginBottom: '20px' }}>
+                            <Form.Control
+                                type="password"
+                                placeholder="Nhập mật khẩu"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </Form.Group>
 
-                            <Form.Group controlId="formBasicCheckbox" className="d-flex justify-content-between align-items-center">
-                                <Form.Check type="checkbox" label="Nhớ tài khoản" />
-                                <Button variant="link" onClick={() => { /* Xử lý quên mật khẩu */ }}>
-                                    Quên mật khẩu
-                                </Button>
-                            </Form.Group>
-
-                            <Button variant="primary" type="button" className="w-100" onClick={login}>
-                                Đăng nhập
+                        <Form.Group controlId="formBasicCheckbox" className="d-flex justify-content-between align-items-center" style={{ marginBottom: '20px' }}>
+                            <Form.Check type="checkbox" label="Nhớ tài khoản" />
+                            <Button variant="link" onClick={() => { /* Xử lý quên mật khẩu */ }}>
+                                Quên mật khẩu
                             </Button>
+                        </Form.Group>
 
-                            <div className="text-center mt-3">
-                                <Button variant="secondary" onClick={register}>
-                                    Đăng ký
-                                </Button>
-                            </div>
-                        </Form>
-                    </div>
-                </Col>
+                        <Button variant="primary" type="button" className="w-100" onClick={login}>
+                            Đăng nhập
+                        </Button>
+
+                        <div className="text-center mt-3">
+                            <a href="#" onClick={register} style={{ color: '#6c757d', textDecoration: 'underline', cursor: 'pointer' }}>
+                                Quên tài khoản? Đăng ký
+                            </a>
+                        </div>
+                    </Form>
+                </div>
             </Row>
         </Container>
     );
 }
+
 export default Login;

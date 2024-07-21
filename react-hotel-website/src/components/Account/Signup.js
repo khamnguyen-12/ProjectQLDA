@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Form, Button, Container, Row, Col, Modal } from 'react-bootstrap';
 import APIs, { endpoints } from '../../configs/APIs';
-import { useSnackbar } from 'notistack';
 
-const SignIn = (history) => {
+const Signup = (history) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [name, setName] = useState('');
@@ -19,13 +18,13 @@ const SignIn = (history) => {
     const nav = useNavigate();
     const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-    
-    const closeModal = async () =>{
+
+    const closeModal = async () => {
         setShowSuccessModal(false);
         nav('/login');
     }
-    
-    const handleSignIn = async () => {
+
+    const handleSignup = async () => {
         try {
 
             // Kiểm tra các trường bắt buộc
@@ -38,9 +37,6 @@ const SignIn = (history) => {
                 setError('Vui lòng chọn ảnh đại diện.');
                 return;
             }
-            // // Kiểm tra username và email đã tồn tại
-            // const checkUsername = await APIs.get(`${endpoints['signin']}?username=${username}`);
-            // const checkEmail = await APIs.get(`${endpoints['signin']}?email=${email}`);
 
             const formData = new FormData();
             formData.append('username', username);
@@ -61,7 +57,7 @@ const SignIn = (history) => {
             for (let [key, value] of formData.entries()) {
                 console.log(`${key}: ${value}`);
             }
-            let response = await APIs.post(endpoints['signin'], formData, {
+            let response = await APIs.post(endpoints['signup'], formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -74,15 +70,25 @@ const SignIn = (history) => {
                 // nav("/d");
             }
         } catch (error) {
-            console.error('Error while signing up:', error);
+            console.error('Error while Signupg up:', error);
             setError('Đăng ký không thành công. Vui lòng thử lại.');
         }
     };
 
     return (
-        <Container fluid className="d-flex justify-content-center align-items-center" style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
+        <Container fluid className="d-flex justify-content-center align-items-center "
+            style={{
+                minHeight: '100vh',
+                backgroundColor: '#f0f2f5',
+                backgroundImage: 'url("https://cache.marriott.com/marriottassets/marriott/BOMSA/bomsa-exterior-0023-hor-feat.jpg")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                padding :'200px',
+                
+            }}>
             <Row className="justify-content-center">
-                <Col md="6" lg="6" style={{ width: 'calc(100% + 100px)'}}>
+                <Col md="6" lg="6" style={{ width: 'calc(100% + 100px)' }}>
                     <div className="card p-4 shadow bg-white rounded" style={{ borderRadius: '8px', padding: '80px' }}>
                         <Form>
                             <h1 className="text-center mb-4" style={{ color: '#1877f2' }}>Đăng ký</h1>
@@ -129,7 +135,7 @@ const SignIn = (history) => {
                                 </Col>
                                 <Col md="6">
                                     <Form.Group controlId="formBasicAvatar">
-                                        
+
                                         <Form.Control
                                             type="file"
                                             placeholder="Avatar"
@@ -204,7 +210,7 @@ const SignIn = (history) => {
 
                             {error && <div className="text-danger">{error}</div>}
 
-                            <Button variant="primary" type="button" className="w-100 mt-3" onClick={handleSignIn} style={{ borderRadius: '4px', backgroundColor: '#1877f2', border: 'none', padding: '10px 0' }}>
+                            <Button variant="primary" type="button" className="w-100 mt-3" onClick={handleSignup} style={{ borderRadius: '4px', backgroundColor: '#1877f2', border: 'none', padding: '10px 0' }}>
                                 Đăng ký
                             </Button>
 
@@ -230,9 +236,9 @@ const SignIn = (history) => {
             </Modal>
         </Container>
 
-        
+
     );
 };
 
 
-export default SignIn;
+export default Signup;

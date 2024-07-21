@@ -1,5 +1,4 @@
 import axios from "axios";
-import moment from "moment";
 import cookie from "react-cookies";
 
 export const BASE_URL = 'http://192.168.1.233:8000/';
@@ -18,9 +17,11 @@ export const BASE_URL = 'http://192.168.1.233:8000/';
 export const endpoints = {
 
  'login': '/o/token/',
- 'current-user': '/accounts/current-user/',
- 'signin': '/accounts/',
- 
+ 'current_user': '/accounts/current_user/',
+ 'signup': '/accounts/',
+ 'list_reservations' : '/reservations/',
+ 'deactivate_reservation': (id) => `/reservations/${id}/deactivate/`, // Thêm hàm cho deactivate với tham số id
+ 'update_reservation': (id) => `/reservations/${id}/`, // Update reservation endpoint
 }   
 
 

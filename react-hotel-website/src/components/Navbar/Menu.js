@@ -1,20 +1,39 @@
 /** @jsx jsx */
 import { jsx, css } from "@emotion/core";
+import { useContext } from "react";
 import { Link } from 'react-router-dom';
-const Menu = ({ openMenu }) => (
-    <div css={styles} className={openMenu ? "menu" : "hidden"}>
-        <a href="">Trang chủ</a>
-        <a href="#about">about</a>
-        <a href="#pricing">pricing</a>
-        <a href="#gallery">gallery</a>
-        <a href="#pages">pages</a>
-        <a href="#blog">blog</a>
-        <a href="#contact">Liên hệ</a>
-        <a href="login">Đăng nhập</a>
-    </div>
-);
+
+import { MyUserContext, MyDispatchContext } from "../../configs/MyContext";
+const Menu = ({ openMenu }) => {
+  const user = useContext(MyUserContext);
+  const dispatch = useContext(MyDispatchContext);
+  const handleLogout = () => {
+    dispatch({ type: "logout" });
+    // window.location.reload(); // Navigate to the home page or any other desired route after logout
+};
+
+  return (
+      <div css={styles} className={openMenu ? "menu" : "hidden"}>
+          <a href=""><Link to="/">Home</Link></a>
+          {user ? (
+                <div className="user-section">
+                    <a><Link to="/info">{user.name}</Link></a>
+                    <a onClick={handleLogout}><Link to="/">Đăng xuất</Link></a>
+                </div>
+            ) : (
+                <a href="/login">Đăng nhập</a>
+            )}
+      </div>
+  );
+};
 
 const styles = css`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #0000CD;
+  padding: 10px 0;
+
   a {
     text-decoration: none;
     text-transform: uppercase;
@@ -31,7 +50,7 @@ const styles = css`
       background: #ff1414;
       width: 100%;
       height: 3px;
-      bottom: -33px;
+      bottom: -5px;
       left: 0;
       opacity: 0;
       transition: opacity 700ms ease-in-out;
@@ -43,7 +62,17 @@ const styles = css`
       }
     }
   }
+
+  .user-section {
+    display: flex;
+    align-items: center;
+    a {
+      margin: 0 22px;
+    }
+  }
+
   @media (max-width: 1225px) {
+    flex-direction: column;
     padding: 80px 40px;
     z-index: 30;
     position: absolute;
@@ -51,23 +80,20 @@ const styles = css`
     left: 0;
     opacity: 1;
     min-height: 96vh;
-    display: flex;
-    flex-direction: column;
     width: 100%;
     max-width: 320px;
-    background: #060706;
-    transition: left 600ms ease-in-out, opacity 600ms ease-in-out;
+    transition: left 100ms ease-in-out, opacity 100ms ease-in-out;
     &.hidden {
       left: -500px;
       opacity: 0;
     }
     a {
-      margin: 0 0 20px 0;
+      margin: 20px 0;
       font-size: 25px;
       text-align: left;
       user-select: none;
       &:hover {
-        color: #fff;
+        color: 	#20B2AA;
         &::after {
           opacity: 0;
         }
