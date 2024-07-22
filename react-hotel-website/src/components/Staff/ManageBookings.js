@@ -91,8 +91,12 @@ const ReservationDetailsModal = ({ showModal, handleClose, selectedReservation, 
                             <Form.Check
                                 type="checkbox"
                                 checked={selectedReservation.statusCheckin}
-                                onChange={(e) => setSelectedReservation(prev => ({ ...prev, statusCheckin: e.target.checked }))}
+                                onChange={(e) => setSelectedReservation(prev => ({
+                                    ...prev,
+                                    statusCheckin: e.target.checked
+                                }))}
                             />
+
                         </Form.Group>
                     </Form>
                 )}
@@ -128,13 +132,19 @@ const ManageBookings = () => {
 
     const handleUpdate = async () => {
         if (!selectedReservation) return;
-    
+
+        // Tạo một bản sao của đối tượng selectedReservation để sửa đổi
+        const updatedReservation = { ...selectedReservation };
+        console.log('Dữ liệu cập nhật:', updatedReservation);
+
         try {
-            // Call API to update the reservation
-            await authAPI().patch(endpoints['update_reservation'](selectedReservation.id), selectedReservation);
-    
-            // Refresh reservation list after update
+            // Gọi API để cập nhật phiếu đặt phòng với giá trị mới của statusCheckin
+            await authAPI().patch(endpoints['update_reservation'](updatedReservation.id), updatedReservation);
+
+            // Làm mới danh sách phiếu đặt phòng sau khi cập nhật
             const response = await authAPI().get(endpoints['list_reservations']);
+
+            console.log("Kết quả cập nhật", response.data)
             setReservations(response.data);
         } catch (error) {
             setError('Failed to update reservation');
@@ -142,24 +152,30 @@ const ManageBookings = () => {
             handleClose();
         }
     };
-    
+
 
     const handleDelete = async () => {
         if (!selectedReservation) return;
-
-        try {
-            // Gọi API để vô hiệu hóa phiếu đặt phòng
-            await authAPI().patch(endpoints['deactivate_reservation'](selectedReservation.id));
-
-            // Làm mới danh sách phiếu đặt phòng sau khi vô hiệu hóa
-            const response = await authAPI().get(endpoints['list_reservations']);
-            setReservations(response.data);
-        } catch (error) {
-            setError('Failed to deactivate reservation');
-        } finally {
-            handleClose();
+    
+        // Hiển thị hộp thoại xác nhận
+        const confirmed = window.confirm('Bạn có chắc chắn muốn xóa phiếu đặt phòng này?');
+    
+        if (confirmed) {
+            try {
+                // Gọi API để vô hiệu hóa phiếu đặt phòng
+                await authAPI().patch(endpoints['deactivate_reservation'](selectedReservation.id));
+    
+                // Làm mới danh sách phiếu đặt phòng sau khi vô hiệu hóa
+                const response = await authAPI().get(endpoints['list_reservations']);
+                setReservations(response.data);
+            } catch (error) {
+                setError('Failed to deactivate reservation');
+            } finally {
+                handleClose();
+            }
         }
     };
+    
 
 
     useEffect(() => {
@@ -205,7 +221,7 @@ const ManageBookings = () => {
                             <td>{reservation.bookDate}</td>
                             <td>{reservation.checkin}</td>
                             <td>{reservation.checkout}</td>
-                            <td>{reservation.statusCheckin ? 'Chưa đặt' : 'Đã đặt'}</td>
+                            <td>{reservation.statusCheckin ? 'Đã đặt' : 'Chưa đặt'}</td>
                             <td>
                                 <Button variant="primary" onClick={() => handleShow(reservation)}>Sửa</Button>
                                 {/* <Button variant="danger" onClick={() => handleDelete(reservation)}>Xóa</Button> */}

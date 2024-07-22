@@ -22,7 +22,9 @@ export const endpoints = {
  'list_reservations' : '/reservations/',
  'deactivate_reservation': (id) => `/reservations/${id}/deactivate/`, // Thêm hàm cho deactivate với tham số id
  'update_reservation': (id) => `/reservations/${id}/`, // Update reservation endpoint
+ 'roomtypes': '/roomtypes/',
 }   
+
 
 
 export const authAPI = () => {
