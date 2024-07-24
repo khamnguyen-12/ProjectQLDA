@@ -97,17 +97,10 @@ class ReservationService(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     createdDate = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveIntegerField(default=1)
-
+    # Thêm trường total_price
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     def __str__(self):
         return f"{self.service.nameService} - Reservation: {self.reservation.guest.name}"
-
-
-# class PhieuNhanPhong(BaseModel):
-#     IDPhieuDatPhong = models.ForeignKey(PhieuDatPhong, on_delete=models.CASCADE)
-#     DanhSachPhong = models.ManyToManyField(Phong)
-#
-#     def __str__(self):
-#         return f"PhieuNhanPhong {self.phieunhanphong_id} - PhieuDatPhong {self.IDPhieuDatPhong.LoaiPhong}"
 
 
 class Bill(BaseModel):
@@ -119,20 +112,47 @@ class Bill(BaseModel):
     summary = models.TextField()
     active = models.BooleanField(default=True)
 
+    #Chat
     def calculate_total_amount(self):
-        # Tính tổng tiền phòng từ reservation
-        room_cost = self.reservation.room.roomType.price
+        # Calculate room cost
+        room_cost = sum(room.roomType.price for room in self.reservation.room.all())
 
-        # Tính tổng chi phí các dịch vụ
+        # Calculate the number of days stayed
+        days_stayed = (self.reservation.checkout - self.reservation.checkin).days
+
+        # Calculate total room cost
+        total_room_cost = room_cost * days_stayed
+
+        # Calculate service cost
         service_cost = sum(rs.service.price * rs.quantity
                            for rs in self.reservation.reservationservice_set.all())
 
-        # Tổng cộng các chi phí
-        self.totalAmount = room_cost + service_cost
+        # Total amount
+        self.totalAmount = total_room_cost + service_cost
         self.save()
 
+    def save(self, *args, **kwargs):
+        self.calculate_total_amount()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return str(self.guest) + " " + str(self.summary) + " " + str(self.totalAmount)
+        return f"{self.guest} - {self.totalAmount}"
+
+    # Lam
+    # def calculate_total_amount(self):
+    #     # Tính tổng tiền phòng từ reservation
+    #     room_cost = self.reservation.room.roomType.price
+    #
+    #     # Tính tổng chi phí các dịch vụ
+    #     service_cost = sum(rs.service.price * rs.quantity
+    #                        for rs in self.reservation.reservationservice_set.all())
+    #
+    #     # Tổng cộng các chi phí
+    #     self.totalAmount = room_cost + service_cost
+    #     self.save()
+    #
+    # def __str__(self):
+    #     return str(self.guest) + " " + str(self.summary) + " " + str(self.totalAmount)
 
 
 class Refund(models.Model):

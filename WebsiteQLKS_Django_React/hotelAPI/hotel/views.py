@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from . import serializers, perm
-from .models import Account, RoomType, Room, Reservation, Service, Refund, Bill
+from .models import *
 from .serializers import (
     AccountSerializer,
     RoomTypeSerializer,
@@ -16,7 +16,7 @@ from .serializers import (
     ReservationSerializer,
     ServiceSerializer,
     RefundSerializer,
-    BillSerializer,
+    BillSerializer, ReservationServiceSerializer,
 )
 
 
@@ -310,11 +310,62 @@ class ServiceViewSet(viewsets.ViewSet,
     serializer_class = ServiceSerializer
     permission_classes = [IsAuthenticated]
 
-
+    def get_permissions(self):
+        if self.action == 'list':
+            if not (self.request.user.is_authenticated and
+                    self.request.user.role == Account.Roles.LeTan):
+                raise PermissionDenied("Only Receptionists can perform this action.")
+            return [permissions.IsAuthenticated()]
 # class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Service.objects.all()
 #     serializer_class = ServiceSerializer
 #     permission_classes = [IsAuthenticated]
+
+class ReservationServiceViewSet(viewsets.ViewSet,
+                                generics.ListCreateAPIView):
+    queryset = ReservationService.objects.all()
+    serializer_class = ReservationServiceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            # Chỉ cho phép người dùng có vai trò 'Lễ tân' sử dụng phương thức 'create'
+            if not (self.request.user.is_authenticated and
+                    self.request.user.role == Account.Roles.LeTan):
+                raise PermissionDenied("Only Receptionists can perform this action.")
+            return [permissions.IsAuthenticated()]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            # Cũng có thể đặt quyền cho các hành động khác nếu cần
+            if not (self.request.user.is_authenticated and
+                    self.request.user.role == Account.Roles.Admin):
+                raise PermissionDenied("Only Admins can perform this action.")
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+    def create(self, request, *args, **kwargs):
+        reservation_id = request.data.get('reservationId')
+        service_id = request.data.get('service')
+        quantity = int(request.data.get('quantity', 1))
+
+        try:
+            reservation = Reservation.objects.get(id=reservation_id)
+            service = Service.objects.get(id=service_id)
+        except (Reservation.DoesNotExist, Service.DoesNotExist):
+            return Response({"detail": "Reservation or Service not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if not reservation.active:
+            return Response({"detail": "Reservation is not active."}, status=status.HTTP_400_BAD_REQUEST)
+
+        total_price = service.price * quantity
+
+        reservation_service = ReservationService.objects.create(
+            reservation=reservation,
+            service=service,
+            quantity=quantity,
+            total_price=total_price
+        )
+
+        serializer = self.get_serializer(reservation_service)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class RefundListCreateView(generics.ListCreateAPIView):

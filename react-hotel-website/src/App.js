@@ -13,16 +13,20 @@ import MyUserReducer from './components/MyReducer/MyUserReducer';
 import cookie from "react-cookies";
 import { MyDispatchContext, MyUserContext } from './configs/MyContext';
 import ManageBookings from './components/Staff/ManageBookings';
+import ServiceList from './components/Staff/ServiceList';
+import AddService from './components/Staff/AddService';
+
 const App = () => {
   const [user, dispatch] = useReducer(MyUserReducer, cookie.load("user") || null);
   const [showMainContent, setShowMainContent] = useState(true);
+
   return (
     <BrowserRouter>
       <MyUserContext.Provider value={user}>
         <MyDispatchContext.Provider value={dispatch}>
           <Navbar />
           <Routes>
-            <Route exact path='/' Component={MainContent} /> 
+            <Route exact path='/' element={<MainContent />} /> 
             <Route
               path='/login'
               element={
@@ -34,6 +38,8 @@ const App = () => {
             <Route path='/info' element={<Info />} />
             <Route path='/signup' element={<Signup />} />
             <Route path='/manage-bookings' element={<ManageBookings />} />
+            <Route path="/service-list" element={<ServiceList />} />
+            <Route path="/add-service" element={<AddService />} />
           </Routes>
           <Footer />
         </MyDispatchContext.Provider>
