@@ -64,10 +64,11 @@ class ReservationServiceSerializer(serializers.ModelSerializer):
     price = serializers.CharField(source='service.price', read_only=True)
     guest_name = serializers.CharField(source='reservation.guest.name', read_only=True)
     room_names = serializers.SerializerMethodField()
+    nameService = serializers.CharField(source='service.nameService', read_only=True)
 
     class Meta:
         model = ReservationService
-        fields = ['service', 'price', 'quantity', 'guest_name', 'room_names', 'total_price']
+        fields = ['service', 'price', 'quantity', 'guest_name', 'room_names', 'total_price', 'nameService']
 
     def get_room_names(self, obj):
         return ", ".join(obj.reservation.room.values_list('nameRoom', flat=True))

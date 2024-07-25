@@ -328,7 +328,7 @@ class ReservationServiceViewSet(viewsets.ViewSet,
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
-        if self.action == 'create':
+        if self.action in ['create', 'list']:
             # Chỉ cho phép người dùng có vai trò 'Lễ tân' sử dụng phương thức 'create'
             if not (self.request.user.is_authenticated and
                     self.request.user.role == Account.Roles.LeTan):

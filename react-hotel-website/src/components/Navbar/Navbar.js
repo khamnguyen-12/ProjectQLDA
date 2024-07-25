@@ -8,7 +8,6 @@ import { MyUserContext } from '../../configs/MyContext';
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
-  const [openServiceMenu, setOpenServiceMenu] = useState(false);
   const user = useContext(MyUserContext);
 
   return (
@@ -18,27 +17,21 @@ const Navbar = () => {
         <Menu openMenu={openMenu} />
 
         {user && user.role === 2 && (
-          <a href="/manage-bookings" className="manage-bookings">
-            Quản lý đặt phòng
-          </a>
-        )}
-
-        {/* New Service Management Menu */}
-        <div className="service-menu">
-          <a
-            href="#"
-            onClick={() => setOpenServiceMenu(!openServiceMenu)}
-            className="manage-services"
-          >
-            Quản lý dịch vụ
-          </a>
-          {openServiceMenu && (
-            <div className="dropdown">
-              <a href="/service-list">Xem danh sách dịch vụ</a>
-              <a href="/add-service">Thêm DV vào phiếu</a>
+          <div className="nav-actions">
+            <a href="/manage-bookings" className="manage-bookings">
+              Quản lý đặt phòng
+            </a>
+            <div className="service-menu">
+              <a href="#" className="manage-services">
+                Quản lý dịch vụ
+              </a>
+              <div className="dropdown">
+                <a href="/service-list">Xem danh sách dịch vụ</a>
+                <a href="/add-service">Thêm DV vào phiếu</a>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <i
           onClick={() => setOpenMenu(!openMenu)}
@@ -106,8 +99,11 @@ const styles = css`
 
   .service-menu {
     position: relative;
-    .dropdown {
+    &:hover .dropdown {
       display: flex;
+    }
+    .dropdown {
+      display: none;
       flex-direction: column;
       position: absolute;
       top: 100%;

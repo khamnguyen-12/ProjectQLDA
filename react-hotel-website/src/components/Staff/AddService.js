@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Container from '../Global/Container';
 import { authAPI, endpoints } from '../../configs/APIs';
 import { SnackbarProvider, useSnackbar } from 'notistack';
+import { Card, CardBody, CardTitle, CardText, Row, Col } from 'reactstrap';
 
 const AddService = () => {
     const [nameService, setNameService] = useState('');
@@ -163,26 +164,14 @@ const AddService = () => {
                     </div>
                     <button type="submit">Thêm dịch vụ</button>
                 </form>
-                <div css={reservationsStyle}>
-                    <h2>Danh sách phiếu đặt phòng</h2>
-                    <ul>
-                        {reservations.map((reservation) => (
-                            <li key={reservation.id}>
-                                {reservation.guest} - Phòng: {reservation.room.map(r => r.nameRoom).join(', ')}
-                                <button onClick={() => setSelectedReservation(reservation.id)}>
-                                    Thêm dịch vụ
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                <ServiceList />
             </div>
         </Container>
     );
 };
 
 const styles = css`
-    padding: 120px;
+    padding: 20px;
     background-color: #f9f9f9;
     h1 {
         margin-bottom: 20px;
@@ -215,29 +204,106 @@ const styles = css`
     }
 `;
 
-const reservationsStyle = css`
-    margin-top: 30px;
-    h2 {
-        margin-bottom: 15px;
-    }
-    ul {
-        list-style-type: none;
-        padding: 0;
-        li {
-            margin-bottom: 10px;
-            button {
-                margin-left: 10px;
-                padding: 5px 10px;
-                background-color: #007bff;
-                border: none;
-                color: #fff;
-                cursor: pointer;
-                &:hover {
-                    background-color: #0056b3;
-                }
+const ServiceList = () => {
+    const [services, setServices] = useState([]);
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const response = await authAPI().get(endpoints['reservation_service']);
+                setServices(response.data);
+                console.log('API response status:', response.status);
+                console.log('API response data:', response.data);
+            } catch (error) {
+                console.error('Error fetching services:', error);
             }
+        };
+
+        fetchServices();
+    }, []);
+
+    // Group services by guest and room
+    const groupedServices = services.reduce((acc, service) => {
+        const key = `${service.guest_name} - Phòng: ${service.room_names}`;
+        if (!acc[key]) {
+            acc[key] = [];
         }
+        acc[key].push(service);
+        return acc;
+    }, {});
+
+    return (
+        <Container>
+            <div css={listStyles}>
+                <h1>Danh sách phiếu đặt phòng</h1>
+                {Object.entries(groupedServices).map(([key, services]) => (
+                    <div key={key} css={groupStyle}>
+                        <h2 css={groupTitleStyle}>{key}</h2>
+                        <Row>
+                            {services.map((service, index) => (
+                                <Col key={index} sm="12" md="6" lg="4">
+                                    <Card css={cardStyle}>
+                                        <CardBody>
+                                            <CardTitle tag="h5" css={cardTitleStyle}>{service.service_name}</CardTitle>
+                                            <CardText css={cardTextStyle}>
+                                                Dịch vụ: {service.nameService} <br />
+                                                Giá: {service.price.toLocaleString()} VND<br />
+                                                Số lượng: {service.quantity}
+                                            </CardText>
+                                        </CardBody>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+                    </div>
+                ))}
+            </div>
+        </Container>
+    );
+};
+
+const listStyles = css`
+    padding: 20px;
+    background-color: #f9f9f9;
+    h1 {
+        margin-bottom: 20px;
+        text-align: center;
     }
+`;
+
+const groupStyle = css`
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+const groupTitleStyle = css`
+    font-size: 1.25rem;
+    color: #343a40;
+    margin-bottom: 10px;
+`;
+
+const cardStyle = css`
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    &:hover {
+        transform: scale(1.05);
+    }
+`;
+
+const cardTitleStyle = css`
+    font-size: 1rem;
+    color: #007bff;
+`;
+
+const cardTextStyle = css`
+    font-size: 0.875rem;
+    color: #343a40;
 `;
 
 export default () => (
