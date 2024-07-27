@@ -77,7 +77,7 @@ class Reservation(BaseModel):
     guest = models.ForeignKey(Account, on_delete=models.CASCADE,
                               limit_choices_to={'role': Account.Roles.KhachHang})
     room = models.ManyToManyField(Room, related_name='rooms')
-    services = models.ManyToManyField(Service, through='ReservationService', null=True)
+    services = models.ManyToManyField(Service, through='ReservationService')
     bookDate = models.DateTimeField()
     checkin = models.DateField()
     checkout = models.DateField()
@@ -87,9 +87,6 @@ class Reservation(BaseModel):
     def __str__(self):
         room_names = ", ".join(self.room.values_list('nameRoom', flat=True))
         return f"{room_names} - Guest: {self.guest.name}"
-    #     sẽ trả về một danh sách các tên phòng (nameRoom) của các phòng liên quan đến đối tượng Reservation hiện tại dưới dạng danh sách.
-    #     Phương thức join() được sử dụng để kết hợp các tên phòng thành một chuỗi, phân tách bởi dấu phẩy và khoảng trắng (", ").
-    # other fields...
 
 
 class ReservationService(models.Model):
@@ -99,37 +96,23 @@ class ReservationService(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     # Thêm trường total_price
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    active = models.BooleanField(default=True)
+
     def __str__(self):
         return f"{self.service.nameService} - Reservation: {self.reservation.guest.name}"
 
 
 class Bill(BaseModel):
-    guest = models.ForeignKey(Account, null=True, on_delete=models.CASCADE,
-                              limit_choices_to={'role': Account.Roles.KhachHang})
-    reservation = models.ForeignKey(Reservation, on_delete=models.CASCADE, null=True)
-    # services = models.ManyToManyField(Service)
-    totalAmount = models.FloatField()
-    summary = models.TextField()
+    reservation_service = models.ForeignKey(ReservationService, null=True, on_delete=models.CASCADE)
+    totalAmount = models.FloatField(default=0.0)
     active = models.BooleanField(default=True)
 
-    #Chat
     def calculate_total_amount(self):
-        # Calculate room cost
-        room_cost = sum(room.roomType.price for room in self.reservation.room.all())
-
-        # Calculate the number of days stayed
-        days_stayed = (self.reservation.checkout - self.reservation.checkin).days
-
-        # Calculate total room cost
-        total_room_cost = room_cost * days_stayed
-
-        # Calculate service cost
-        service_cost = sum(rs.service.price * rs.quantity
-                           for rs in self.reservation.reservationservice_set.all())
-
-        # Total amount
-        self.totalAmount = total_room_cost + service_cost
-        self.save()
+        total_services_cost = sum(rs.total_price for rs in self.reservation_service.reservation.reservationservice_set.all())
+        total_days = (self.reservation_service.reservation.checkout - self.reservation_service.reservation.checkin).days
+        room_price = sum(room.price for room in self.reservation_service.reservation.room.all())
+        total_room_cost = total_days * room_price
+        self.totalAmount = total_services_cost + total_room_cost
 
     def save(self, *args, **kwargs):
         self.calculate_total_amount()
@@ -137,22 +120,6 @@ class Bill(BaseModel):
 
     def __str__(self):
         return f"{self.guest} - {self.totalAmount}"
-
-    # Lam
-    # def calculate_total_amount(self):
-    #     # Tính tổng tiền phòng từ reservation
-    #     room_cost = self.reservation.room.roomType.price
-    #
-    #     # Tính tổng chi phí các dịch vụ
-    #     service_cost = sum(rs.service.price * rs.quantity
-    #                        for rs in self.reservation.reservationservice_set.all())
-    #
-    #     # Tổng cộng các chi phí
-    #     self.totalAmount = room_cost + service_cost
-    #     self.save()
-    #
-    # def __str__(self):
-    #     return str(self.guest) + " " + str(self.summary) + " " + str(self.totalAmount)
 
 
 class Refund(models.Model):

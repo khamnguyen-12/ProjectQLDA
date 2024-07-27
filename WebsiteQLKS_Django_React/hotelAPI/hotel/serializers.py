@@ -68,7 +68,7 @@ class ReservationServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ReservationService
-        fields = ['service', 'price', 'quantity', 'guest_name', 'room_names', 'total_price', 'nameService']
+        fields = ['service', 'price', 'quantity', 'guest_name', 'room_names', 'total_price', 'nameService', 'active', 'id']
 
     def get_room_names(self, obj):
         return ", ".join(obj.reservation.room.values_list('nameRoom', flat=True))
@@ -140,36 +140,27 @@ class RefundSerializer(serializers.ModelSerializer):
 
 #Chat
 class BillSerializer(serializers.ModelSerializer):
-    guest = AccountSerializer()
-    reservation = ReservationDetailSerializer()
+    reservation_service = ReservationServiceSerializer(read_only=True)
     totalAmount = serializers.FloatField(read_only=True)
 
     class Meta:
         model = Bill
-        fields = ['id', 'guest', 'reservation', 'totalAmount', 'summary', 'active']
+        fields = ['id', 'reservation_service', 'totalAmount', 'active']
 
-    def create(self, validated_data):
-        reservation_data = validated_data.pop('reservation')
-        bill = Bill.objects.create(**validated_data)
-        # You might need to handle nested reservation creation if necessary
-        return bill
+    # def create(self, validated_data):
+    #     reservation_data = validated_data.pop('reservation')
+    #     bill = Bill.objects.create(**validated_data)
+    #     # You might need to handle nested reservation creation if necessary
+    #     return bill
+    #
+    # def update(self, instance, validated_data):
+    #     reservation_data = validated_data.pop('reservation')
+    #     # Update instance
+    #     instance.guest = validated_data.get('guest', instance.guest)
+    #     instance.summary = validated_data.get('summary', instance.summary)
+    #     instance.active = validated_data.get('active', instance.active)
+    #     instance.calculate_total_amount()
+    #     instance.save()
+    #     return instance
 
-    def update(self, instance, validated_data):
-        reservation_data = validated_data.pop('reservation')
-        # Update instance
-        instance.guest = validated_data.get('guest', instance.guest)
-        instance.summary = validated_data.get('summary', instance.summary)
-        instance.active = validated_data.get('active', instance.active)
-        instance.calculate_total_amount()
-        instance.save()
-        return instance
 
-
-#Lam
-# class BillSerializer(serializers.ModelSerializer):
-#     guest = AccountSerializer()
-#     reservation = ReservationSerializer()
-#
-#     class Meta:
-#         model = Bill
-#         fields = '__all__'

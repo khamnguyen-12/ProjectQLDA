@@ -39,6 +39,7 @@ const AddService = () => {
         const fetchServices = async () => {
             try {
                 const response = await authAPI().get(endpoints['services']);
+                // console.log(response.data)
                 setServices(response.data);
             } catch (err) {
                 setError('Failed to fetch services');
@@ -56,7 +57,7 @@ const AddService = () => {
         setSelectedService(selectedServiceId);
         setNameService(selectedService.nameService);
         setPrice(selectedService.price);
-    };
+    };    
 
     const handleQuantityChange = (e) => {
         const newQuantity = e.target.value;
@@ -171,7 +172,7 @@ const AddService = () => {
 };
 
 const styles = css`
-    padding: 20px;
+    padding: 120px;
     background-color: #f9f9f9;
     h1 {
         margin-bottom: 20px;
@@ -206,14 +207,14 @@ const styles = css`
 
 const ServiceList = () => {
     const [services, setServices] = useState([]);
+    const { enqueueSnackbar } = useSnackbar(); // Add useSnackbar here for notification
 
     useEffect(() => {
         const fetchServices = async () => {
             try {
                 const response = await authAPI().get(endpoints['reservation_service']);
+                console.log('Thông tin phiếu_dịch vụ:', response.data)
                 setServices(response.data);
-                console.log('API response status:', response.status);
-                console.log('API response data:', response.data);
             } catch (error) {
                 console.error('Error fetching services:', error);
             }
@@ -221,6 +222,42 @@ const ServiceList = () => {
 
         fetchServices();
     }, []);
+    
+    const handleDelete = async (serviceId) => {
+        console.log('Attempting to delete service with ID:', serviceId); // Log ID dịch vụ
+        if (!serviceId) {
+            enqueueSnackbar('Service ID is undefined', { variant: 'error' });
+            return;
+        }
+        try {
+            const response = await authAPI().patch(endpoints['deactive_service'](serviceId), { active: false });
+            console.log('Service deactivation response:', response); // Log phản hồi thành công
+            setServices(services.filter(service => service.id !== serviceId));
+            enqueueSnackbar('Dịch vụ đã được xóa thành công', { variant: 'success' });
+        } catch (error) {
+            console.error('Error deleting service:', error); // Log lỗi
+            if (error.response) {
+                console.error('Error response data:', error.response.data); // Log dữ liệu phản hồi lỗi
+                console.error('Error response status:', error.response.status); // Log trạng thái phản hồi lỗi
+                console.error('Error response headers:', error.response.headers); // Log tiêu đề phản hồi lỗi
+                if (error.response.status === 404) {
+                    enqueueSnackbar('Dịch vụ không tìm thấy, có thể đã bị xóa trước đó.', { variant: 'warning' });
+                } else {
+                    enqueueSnackbar('Có lỗi xảy ra khi xóa dịch vụ', { variant: 'error' });
+                }
+            } else if (error.request) {
+                console.error('Error request:', error.request); // Log yêu cầu lỗi
+                enqueueSnackbar('Không thể kết nối với máy chủ', { variant: 'error' });
+            } else {
+                console.error('Error message:', error.message); // Log thông điệp lỗi
+                enqueueSnackbar('Có lỗi xảy ra, vui lòng thử lại', { variant: 'error' });
+            }
+        }
+    };
+    
+    
+    
+    
 
     // Group services by guest and room
     const groupedServices = services.reduce((acc, service) => {
@@ -244,9 +281,15 @@ const ServiceList = () => {
                                 <Col key={index} sm="12" md="6" lg="4">
                                     <Card css={cardStyle}>
                                         <CardBody>
-                                            <CardTitle tag="h5" css={cardTitleStyle}>{service.service_name}</CardTitle>
+                                            <button
+                                                className="delete-button"
+                                                css={deleteButtonStyle}
+                                                onClick={() => handleDelete(service.id)}
+                                            >
+                                                Xóa
+                                            </button>
+                                            <CardTitle tag="h5" css={cardTitleStyle}>{service.nameService}</CardTitle>
                                             <CardText css={cardTextStyle}>
-                                                Dịch vụ: {service.nameService} <br />
                                                 Giá: {service.price.toLocaleString()} VND<br />
                                                 Số lượng: {service.quantity}
                                             </CardText>
@@ -286,6 +329,7 @@ const groupTitleStyle = css`
 `;
 
 const cardStyle = css`
+    position: relative;
     margin-bottom: 10px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -293,6 +337,28 @@ const cardStyle = css`
     transition: transform 0.3s ease;
     &:hover {
         transform: scale(1.05);
+        .delete-button {
+            opacity: 1;
+            visibility: visible;
+        }
+    }
+`;
+
+const deleteButtonStyle = css`
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    &:hover {
+        background-color: #c82333;
     }
 `;
 

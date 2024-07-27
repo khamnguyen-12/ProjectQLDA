@@ -1,7 +1,8 @@
     import axios from "axios";
     import cookie from "react-cookies";
 
-    export const BASE_URL = 'http://192.168.1.233:8000/';
+    // export const BASE_URL = 'http://192.168.1.233:8000/';
+    export const BASE_URL = 'http://127.0.0.1:8000/';
 
 
     export const endpoints = {
@@ -14,7 +15,8 @@
     'update_reservation': (id) => `/reservations/${id}/`, // Update reservation endpoint
     'roomtypes': '/roomtypes/',
     'reservation_service' : '/reservation_services/',
-    'services' : '/services/'
+    'services' : '/services/',
+    'deactive_service': (id) => `/reservation_services/${id}/`, // Endpoint đúng cho việc deactive service
     }   
 
 

@@ -280,29 +280,6 @@ class ReservationViewSet(viewsets.ViewSet,
         except Reservation.DoesNotExist:
             return Response({'error': 'Reservation not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    #API ghi đè có sẵn (chat)
-    # def create(self, request, *args, **kwargs):
-    #     serializer = ReservationSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-    # def retrieve(self, request, pk=None):
-    #     queryset = self.get_queryset()
-    #     reservation = get_object_or_404(queryset, pk=pk)
-    #     serializer = ReservationSerializer(reservation)
-    #     return Response(serializer.data)
-    #
-    # def update(self, request, pk=None):
-    #     reservation = get_object_or_404(self.get_queryset(), pk=pk)
-    #     serializer = ReservationSerializer(reservation, data=request.data, partial=True)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data)
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    #
-
 
 class ServiceViewSet(viewsets.ViewSet,
                      generics.ListCreateAPIView):
@@ -321,20 +298,22 @@ class ServiceViewSet(viewsets.ViewSet,
 #     serializer_class = ServiceSerializer
 #     permission_classes = [IsAuthenticated]
 
+
 class ReservationServiceViewSet(viewsets.ViewSet,
-                                generics.ListCreateAPIView):
+                                generics.ListCreateAPIView,
+                                generics.UpdateAPIView):
     queryset = ReservationService.objects.all()
     serializer_class = ReservationServiceSerializer
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
-        if self.action in ['create', 'list']:
+        if self.action in ['create', 'list', 'update_active']:
             # Chỉ cho phép người dùng có vai trò 'Lễ tân' sử dụng phương thức 'create'
             if not (self.request.user.is_authenticated and
                     self.request.user.role == Account.Roles.LeTan):
                 raise PermissionDenied("Only Receptionists can perform this action.")
             return [permissions.IsAuthenticated()]
-        elif self.action in ['update', 'partial_update', 'destroy']:
+        elif self.action in ['update', 'destroy']:
             # Cũng có thể đặt quyền cho các hành động khác nếu cần
             if not (self.request.user.is_authenticated and
                     self.request.user.role == Account.Roles.Admin):
@@ -367,6 +346,41 @@ class ReservationServiceViewSet(viewsets.ViewSet,
         serializer = self.get_serializer(reservation_service)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def list(self, request, *args, **kwargs):
+        # Lọc các reservation đang active
+        active_reservations = Reservation.objects.filter(active=True)
+        active_services = Service.objects.filter(active=True)
+        # Lọc reservation services thuộc các reservation đang active
+        queryset = ReservationService.objects.filter(
+            active=True,
+            reservation__in=active_reservations,
+            service__in=active_services
+        )
+
+        # Serialize dữ liệu
+        serializer = self.get_serializer(queryset, many=True)
+
+        # Trả về phản hồi với dữ liệu đã được serialize
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            # Lấy đối tượng ReservationService theo id
+            instance = self.get_object()
+        except ReservationService.DoesNotExist:
+            return Response({'detail': 'Not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Cập nhật trường active
+        active = request.data.get('active', None)
+
+        if active is not None:
+            instance.active = active
+            instance.save()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response({'detail': 'Field "active" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RefundListCreateView(generics.ListCreateAPIView):
     queryset = Refund.objects.all()
@@ -380,15 +394,33 @@ class RefundDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
 
-class BillListCreateView(generics.ListCreateAPIView):
+class BillViewSet(viewsets.ViewSet,
+                         generics.ListCreateAPIView):
     queryset = Bill.objects.all()
     serializer_class = BillSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action in ['list', 'create']:  # Allow 'list' and 'create' for receptionists
+            if self.request.user.is_authenticated and self.request.user.role == Account.Roles.LeTan:
+                return [permissions.IsAuthenticated()]
+            else:
+                raise PermissionDenied("Only receptionists can access this endpoint.")
 
-class BillDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Bill.objects.all()
-    serializer_class = BillSerializer
-    permission_classes = [IsAuthenticated]
+        # Add other actions and permission checks here if needed
+        return [permissions.AllowAny()]
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        serializer = BillSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = BillSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Create your views here.

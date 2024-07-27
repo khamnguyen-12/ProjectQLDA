@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-3sv!j(b!f-e_(6084b5ka6!@%b8#8_b^7_*n#alg!za63ueib3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.1.233', 'localhost']
+ALLOWED_HOSTS = ['192.168.1.233', 'localhost', '127.0.0.1']
 
 import cloudinary
 import cloudinary.uploader
