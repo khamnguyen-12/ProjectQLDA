@@ -190,7 +190,8 @@ class ReservationViewSet(viewsets.ViewSet,
             else:
                 raise PermissionDenied("Only receptionists can access this endpoint.")
         elif self.action in ['partial_update', 'update']:
-            if self.request.user.is_authenticated and self.request.user.role in [Account.Roles.KhachHang, Account.Roles.LeTan]:
+            if self.request.user.is_authenticated and self.request.user.role in [Account.Roles.KhachHang,
+                                                                                 Account.Roles.LeTan]:
                 return [permissions.IsAuthenticated()]
             else:
                 raise PermissionDenied("Only the customer or receptionists can partially update this reservation.")
@@ -210,7 +211,6 @@ class ReservationViewSet(viewsets.ViewSet,
 
     def get_queryset(self):
         return self.queryset
-
 
     def create(self, request, *args, **kwargs):
         guest_name = request.data.get('guest')
@@ -293,6 +293,8 @@ class ServiceViewSet(viewsets.ViewSet,
                     self.request.user.role == Account.Roles.LeTan):
                 raise PermissionDenied("Only Receptionists can perform this action.")
             return [permissions.IsAuthenticated()]
+
+
 # class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
 #     queryset = Service.objects.all()
 #     serializer_class = ServiceSerializer
@@ -320,6 +322,7 @@ class ReservationServiceViewSet(viewsets.ViewSet,
                 raise PermissionDenied("Only Admins can perform this action.")
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
+
     def create(self, request, *args, **kwargs):
         reservation_id = request.data.get('reservationId')
         service_id = request.data.get('service')
@@ -382,20 +385,19 @@ class ReservationServiceViewSet(viewsets.ViewSet,
         return Response({'detail': 'Field "active" is required.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RefundListCreateView(generics.ListCreateAPIView):
-    queryset = Refund.objects.all()
-    serializer_class = RefundSerializer
+class ReservationServiceListView(
+                                 generics.ListAPIView,
+):
+    serializer_class = ReservationServiceSerializer
     permission_classes = [IsAuthenticated]
 
-
-class RefundDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Refund.objects.all()
-    serializer_class = RefundSerializer
-    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        reservation_id = self.kwargs['reservation_id']
+        return ReservationService.objects.filter(reservation_id=reservation_id)
 
 
 class BillViewSet(viewsets.ViewSet,
-                         generics.ListCreateAPIView):
+                  generics.ListCreateAPIView):
     queryset = Bill.objects.all()
     serializer_class = BillSerializer
     permission_classes = [IsAuthenticated]
@@ -415,12 +417,41 @@ class BillViewSet(viewsets.ViewSet,
         serializer = BillSerializer(queryset, many=True)
         return Response(serializer.data)
 
-    def create(self, request):
-        serializer = BillSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        total_amount = data.get('totalAmount')
+        reservation_id = data.get('reservation')
 
+        try:
+            reservation = Reservation.objects.get(id=reservation_id)
+        except Reservation.DoesNotExist:
+            return Response({"error": "Reservation not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        bill = Bill.objects.create(
+            totalAmount=total_amount,
+            reservation=reservation
+        )
+
+        serializer = BillSerializer(bill)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # def create(self, request):
+    #     serializer = BillSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         bill = serializer.save()
+    #         response_serializer = BillSerializer(bill)
+    #         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RefundListCreateView(generics.ListCreateAPIView):
+    queryset = Refund.objects.all()
+    serializer_class = RefundSerializer
+    permission_classes = [IsAuthenticated]
+
+
+class RefundDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Refund.objects.all()
+    serializer_class = RefundSerializer
+    permission_classes = [IsAuthenticated]
 
 # Create your views here.

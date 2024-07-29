@@ -15,8 +15,12 @@
     'update_reservation': (id) => `/reservations/${id}/`, // Update reservation endpoint
     'roomtypes': '/roomtypes/',
     'reservation_service' : '/reservation_services/',
+    'services_of_reservation': (id) => `/reservations/${id}/services/`,
     'services' : '/services/',
-    'deactive_service': (id) => `/reservation_services/${id}/`, // Endpoint đúng cho việc deactive service
+    'deactive_service': (id) => `/reservation_services/${id}/`, 
+    'bills' : '/bills/'
+
+
     }   
 
 

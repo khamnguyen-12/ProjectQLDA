@@ -8,6 +8,7 @@ import { MyUserContext } from '../../configs/MyContext';
 
 const Navbar = () => {
   const [openMenu, setOpenMenu] = useState(false);
+  const [showInvoiceMenu, setShowInvoiceMenu] = useState(false);
   const user = useContext(MyUserContext);
 
   return (
@@ -29,6 +30,17 @@ const Navbar = () => {
                 <a href="/service-list">Xem danh sách dịch vụ</a>
                 <a href="/add-service">Thêm DV vào phiếu</a>
               </div>
+            </div>
+            <div className="invoice-menu" onMouseEnter={() => setShowInvoiceMenu(true)} onMouseLeave={() => setShowInvoiceMenu(false)}>
+              <a href="#" className="manage-bills">
+                Quản lý hóa đơn
+              </a>
+              {showInvoiceMenu && (
+                <div className="dropdown">
+                  <a href="/list-invoice">Danh sách hóa đơn</a>
+                  <a href="/manage-invoice">Xuất hóa đơn</a>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -70,7 +82,8 @@ const styles = css`
   }
 
   .manage-bookings,
-  .manage-services {
+  .manage-services,
+  .manage-bills {
     color: #fff;
     text-decoration: none;
     text-transform: uppercase;
@@ -97,7 +110,7 @@ const styles = css`
     }
   }
 
-  .service-menu {
+  .service-menu, .invoice-menu {
     position: relative;
     &:hover .dropdown {
       display: flex;
@@ -126,60 +139,6 @@ const styles = css`
     display: flex;
     align-items: center;
     gap: 20px;
-  }
-
-  .username {
-    color: #fff;
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    text-transform: uppercase;
-    position: relative;
-    transition: color 700ms ease-in-out;
-    &::after {
-      position: absolute;
-      content: "";
-      background: #ff1414;
-      width: 100%;
-      height: 3px;
-      bottom: -33px;
-      left: 0;
-      opacity: 0;
-      transition: opacity 700ms ease-in-out;
-    }
-    &:hover {
-      color: #ff1414;
-      &::after {
-        opacity: 1;
-      }
-    }
-  }
-
-  .logout {
-    color: #fff;
-    text-decoration: none;
-    font-size: 15px;
-    font-weight: 600;
-    text-transform: uppercase;
-    position: relative;
-    transition: color 700ms ease-in-out;
-    &::after {
-      position: absolute;
-      content: "";
-      background: #ff1414;
-      width: 100%;
-      height: 3px;
-      bottom: -33px;
-      left: 0;
-      opacity: 0;
-      transition: opacity 700ms ease-in-out;
-    }
-    &:hover {
-      color: #ff1414;
-      &::after {
-        opacity: 1;
-      }
-    }
   }
 
   #burgerMenu {

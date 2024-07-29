@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from cloudinary.models import CloudinaryField
+from decimal import Decimal
 
 
 class BaseModel(models.Model):
@@ -38,9 +39,13 @@ class Account(AbstractUser):
         return self.username
 
 
+from django.db import models
+from cloudinary.models import CloudinaryField
+
 class RoomType(BaseModel):
     nameRoomType = models.CharField(max_length=100)
-    price = models.CharField(max_length=100)
+    # price = models.FloatField()  # Changed to FloatField
+    price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.CharField(max_length=10)
     image = CloudinaryField()
 
@@ -52,14 +57,11 @@ class Room(BaseModel):
     nameRoom = models.CharField(max_length=100)
     roomType = models.ForeignKey(RoomType, on_delete=models.CASCADE)
 
-    # startDate = models.DateField(null=True)
-    # endđate = models.DateField(null=True)
-
     class Status(models.IntegerChoices):
         Trong = 0, 'Trống'
         CoNguoi = 1, 'Có người'
 
-    status = models.IntegerField(choices=Status, default=0)
+    status = models.IntegerField(choices=Status.choices, default=0)
 
     def __str__(self):
         return self.nameRoom
@@ -67,7 +69,8 @@ class Room(BaseModel):
 
 class Service(BaseModel):
     nameService = models.CharField(max_length=200, null=True)
-    price = models.FloatField()
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    # price = models.FloatField()
 
     def __str__(self):
         return str(self.nameService)
@@ -79,9 +82,10 @@ class Reservation(BaseModel):
     room = models.ManyToManyField(Room, related_name='rooms')
     services = models.ManyToManyField(Service, through='ReservationService')
     bookDate = models.DateTimeField()
-    checkin = models.DateField()
-    checkout = models.DateField()
-    active = models.BooleanField(default=True)  # Trường active để quản lý trạng thái đặt phòng
+    # đổi 2 trường thành datetime để hiển thị chi tiết thời điểm
+    checkin = models.DateTimeField()
+    checkout = models.DateTimeField()
+    active = models.BooleanField(default=True)
     statusCheckin = models.BooleanField(default=False)
 
     def __str__(self):
@@ -94,7 +98,6 @@ class ReservationService(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     createdDate = models.DateTimeField(auto_now_add=True)
     quantity = models.PositiveIntegerField(default=1)
-    # Thêm trường total_price
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
 
@@ -103,23 +106,38 @@ class ReservationService(models.Model):
 
 
 class Bill(BaseModel):
-    reservation_service = models.ForeignKey(ReservationService, null=True, on_delete=models.CASCADE)
-    totalAmount = models.FloatField(default=0.0)
+    reservation = models.ForeignKey(Reservation, null=True, on_delete=models.CASCADE)
+    totalAmount = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     active = models.BooleanField(default=True)
 
-    def calculate_total_amount(self):
-        total_services_cost = sum(rs.total_price for rs in self.reservation_service.reservation.reservationservice_set.all())
-        total_days = (self.reservation_service.reservation.checkout - self.reservation_service.reservation.checkin).days
-        room_price = sum(room.price for room in self.reservation_service.reservation.room.all())
-        total_room_cost = total_days * room_price
-        self.totalAmount = total_services_cost + total_room_cost
+    # def calculate_total_amount(self):
+    #     # Tính tổng chi phí dịch vụ
+    #     total_services_cost = sum(Decimal(rs.total_price) for rs in self.reservation.reservationservice_set.all())
+    #     print(f"Total Services Cost: {total_services_cost}")
+    #
+    #     # Tính tổng số ngày
+    #     total_days = (self.reservation.checkout - self.reservation.checkin).days
+    #     if total_days < 1:
+    #         total_days = 1  # Đảm bảo ít nhất một ngày được tính phí
+    #     print(f"Total Days: {total_days}")
+    #
+    #     # Tính tổng chi phí phòng
+    #     room_price = sum(Decimal(room.roomType.price) for room in self.reservation.room.all())
+    #     print(f"Room Price: {room_price}")
+    #     total_room_cost = Decimal(total_days) * room_price
+    #     print(f"Total Room Cost: {total_room_cost}")
+    #
+    #     # Tính tổng số tiền
+    #     self.totalAmount = total_services_cost + total_room_cost
+    #     print(f"Total Amount: {self.totalAmount}")
+    #     return self.totalAmount
 
-    def save(self, *args, **kwargs):
-        self.calculate_total_amount()
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.calculate_total_amount()
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.guest} - {self.totalAmount}"
+        return f"{self.reservation.guest.username} - {self.totalAmount}"
 
 
 class Refund(models.Model):

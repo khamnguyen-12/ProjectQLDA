@@ -256,9 +256,6 @@ const ServiceList = () => {
     };
     
     
-    
-    
-
     // Group services by guest and room
     const groupedServices = services.reduce((acc, service) => {
         const key = `${service.guest_name} - Phòng: ${service.room_names}`;
