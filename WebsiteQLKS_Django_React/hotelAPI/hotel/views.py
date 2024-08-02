@@ -184,7 +184,7 @@ class ReservationViewSet(viewsets.ViewSet,
 
     # Chat gpt
     def get_permissions(self):
-        if self.action in ['list', 'create']:  # Allow 'list' and 'create' for receptionists
+        if self.action in ['list']:  # Allow 'list' and 'create' for receptionists
             if self.request.user.is_authenticated and self.request.user.role == Account.Roles.LeTan:
                 return [permissions.IsAuthenticated()]
             else:
@@ -202,7 +202,7 @@ class ReservationViewSet(viewsets.ViewSet,
                 return [permissions.IsAuthenticated()]
             else:
                 raise PermissionDenied("Only receptionists can cancel reservations.")
-        return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset().filter(active=True)
@@ -280,6 +280,14 @@ class ReservationViewSet(viewsets.ViewSet,
         except Reservation.DoesNotExist:
             return Response({'error': 'Reservation not found'}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=False, methods=['get'], url_path='customer-reservations')
+    def get_customer_reservations(self, request):
+            if request.user.is_authenticated and request.user.role == Account.Roles.KhachHang:
+                reservations = self.queryset.filter(guest=request.user)
+                serializer = self.get_serializer(reservations, many=True)
+                return Response(serializer.data)
+            else:
+                raise PermissionDenied("Chỉ khách hàng mới có quyền truy cập endpoint này.")
 
 class ServiceViewSet(viewsets.ViewSet,
                      generics.ListCreateAPIView):

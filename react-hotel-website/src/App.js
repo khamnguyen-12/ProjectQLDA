@@ -18,6 +18,7 @@ import AddService from './components/Staff/AddService';
 import ManageInvoices from './components/Staff/ManageInvoices';
 import { SnackbarProvider } from 'notistack';
 import InvoiceList from './components/Staff/InvoiceList';
+import CustomerReservations from './components/Customer/CustomerReservations';
 
 const App = () => {
   const [user, dispatch] = useReducer(MyUserReducer, cookie.load("user") || null);
@@ -46,6 +47,7 @@ const App = () => {
               <Route path="/add-service" element={<AddService />} />
               <Route path="/manage-invoice" element={<ManageInvoices />} />
               <Route path="/list-invoice" element={<InvoiceList />} />
+              <Route path="/customer-reservations" element={<CustomerReservations />} /> 
             </Routes>
             <Footer />
           </MyDispatchContext.Provider>

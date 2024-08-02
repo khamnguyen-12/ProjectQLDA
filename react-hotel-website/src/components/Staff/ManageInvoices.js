@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { authAPI, endpoints } from '../../configs/APIs';
 import { Modal, Button, Form } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import moment from 'moment';
+import moment from 'moment';    
 import { useSnackbar } from 'notistack';
 
 const InvoiceDetailsModal = ({ showModal, handleClose, selectedReservation, services }) => {

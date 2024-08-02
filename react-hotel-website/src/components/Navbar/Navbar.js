@@ -44,7 +44,13 @@ const Navbar = () => {
             </div>
           </div>
         )}
-
+        {user && user.role === 3 && (  
+          <div className="nav-actions">
+            <a href="/customer-reservations" className="customer-reservations">
+              Phiếu đã đặt
+            </a>
+          </div>
+        )}
         <i
           onClick={() => setOpenMenu(!openMenu)}
           id="burgerMenu"
@@ -83,7 +89,8 @@ const styles = css`
 
   .manage-bookings,
   .manage-services,
-  .manage-bills {
+  .manage-bills,
+  .customer-reservations {
     color: #fff;
     text-decoration: none;
     text-transform: uppercase;

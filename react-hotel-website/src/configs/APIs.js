@@ -18,8 +18,8 @@
     'services_of_reservation': (id) => `/reservations/${id}/services/`,
     'services' : '/services/',
     'deactive_service': (id) => `/reservation_services/${id}/`, 
-    'bills' : '/bills/'
-
+    'bills' : '/bills/',
+    'customer_reservations' : '/reservations/customer-reservations/',
 
     }   
 
